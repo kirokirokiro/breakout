@@ -11,8 +11,8 @@ class Ball(Entity):
 	def __init__(self, WIDTH, HEIGHT):
 	#SOUND
 		Entity.__init__(self)
-		self.size_width = self.size_height = 18 * (WIDTH * 1.0 / 800)
-		#self.size_height = 18 * (HEIGHT * 1.0 / 640)
+		self.size_width = self.size_height = 18 * (pygame.display.Info().current_w *  1.0 / 800)
+		print ((pygame.display.Info().current_w*pygame.display.Info().current_h) * 1.0 / (800 * 640))
 		self.image = pygame.Surface((self.size_width, self.size_height ))
 		self.image.convert()
 		self.image.fill(pygame.Color("#FFFFFF"))
@@ -21,8 +21,14 @@ class Ball(Entity):
 		self.y = HEIGHT - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
-		self.speed = ((WIDTH * HEIGHT) / 512000) * 5.0
+		total_pixels = 1.0 * pygame.display.Info().current_w * pygame.display.Info().current_h
+		self.speed =  total_pixels / (800 * 640) * 6
+		print self.speed
+		self.speed = (pygame.display.Info().current_w * 1.0 / 800) * 6
+		print self.speed
 		
+		self.h_speed = (pygame.display.Info().current_w * 1.0 / 800) * 6
+		self.v_speed = (pygame.display.Info().current_h * 1.0 / 640) * 6
 		
 		#direction is an angle. 90 is to the right, 270 is to the left, 180 is up and 360 is down
 		self.direction = 180
@@ -36,8 +42,12 @@ class Ball(Entity):
 		rad = self.direction * math.pi/180
 		
 		#then is calculates the next Y and X coordinates that the ball will reach with this angle
+		'''
 		self.nextX += self.speed * math.sin(rad)
 		self.nextY += self.speed * math.cos(rad)
+		'''
+		self.nextX += self.h_speed * math.sin(rad)
+		self.nextY += self.v_speed * math.cos(rad)
 		
 		#here is gets complicated, fasten your seatbelt, I got a headache trying to figure this out. I couldn't find a code on the internet that is that precise and "realistic"
 		#It loops on all the blocks...
@@ -64,8 +74,8 @@ class Ball(Entity):
 		#now we calculate the X and Y coordinates again after the collision with the blocks
 		#if it didn't collide then it does the exact same calculation
 		rad = self.direction * math.pi/180		
-		self.x += self.speed * math.sin(rad)
-		self.y += self.speed * math.cos(rad)
+		self.x += self.h_speed * math.sin(rad)
+		self.y += self.v_speed * math.cos(rad)
 
 		#we have to calculate x and y of the object (self.x and self.y) and only then we can change the x and y of the rectangle (self.rect)
 		#because the rectangle's coordinates are rounded
@@ -84,8 +94,6 @@ class Ball(Entity):
 			
 		#when the ball hit the bottom of the screen the player loses a life
 		if self.rect.bottom >= HEIGHT:
-			#player.die(WIDTH, HEIGHT)
-			#self.die(WIDTH, HEIGHT)
 				return 1
 		
 		#if it collides with the player, bounce it too...
@@ -98,9 +106,9 @@ class Ball(Entity):
 		
 
 	
-	def die(self, WIDTH, HEIGHT):
-		self.rect.x = self.nextX = self.x = WIDTH/2 - self.rect.width/2
-		self.rect.y = self.nextY = self.y = HEIGHT - 100
+	def die(self):
+		self.rect.x = self.nextX = self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		self.rect.y = self.nextY = self.y = pygame.display.Info().current_h - 100
 		self.direction = 180
 		
 	def collide_up_down(self):
