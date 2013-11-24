@@ -13,8 +13,7 @@ class Ball(Entity):
 		self.image.convert()
 		self.image.fill(pygame.Color("#FFFFFF"))
 		self.rect = self.image.get_rect()
-		#self.x = pygame.display.Info().current_w/2 - self.rect.width/2
-		self.x = 0
+		self.x = pygame.display.Info().current_w/2 - self.rect.width/2
 		self.y = pygame.display.Info().current_h - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
