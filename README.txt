@@ -9,6 +9,7 @@ Controls:
 Left and right arrows to move
 B to resize screen (switch between 800x640 and and 1440x900)
 N to mute the sound effect
+SPACE to pause and unpause
 
 
 I'm still learning :)

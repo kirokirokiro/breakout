@@ -5,11 +5,12 @@ from entity import Entity
 from player import Player
 from ball import Ball
 from block import Block
+from item import Item
+from sound import Sound
 
 '''base width is 800
 base height is 640
 '''
-
 
 
 DEPTH = 32
@@ -19,7 +20,9 @@ class Game():
 	entities = None
 	blocks = None
 	player = None
-		
+	items = None
+	sound_factory = None
+	
 	def __init__(self, window_width, window_height):
 		#Screen settings
 		self.screen = pygame.display.set_mode((window_width, window_height), FLAGS, DEPTH)
@@ -38,11 +41,14 @@ class Game():
 		
 		#Entities list (player, balls, blocks)
 		self.entities = pygame.sprite.Group()
+		self.items = pygame.sprite.Group()
 		self.blocks = pygame.sprite.Group()
 		self.player = Player()
 		self.ball = Ball()
 		self.entities.add(self.player)
 		self.entities.add(self.ball)
+		
+		self.sound_factory = Sound()
 		
 		#Calculating the space between each block
 		horizontal_spacing = 50 * (pygame.display.Info().current_w * 1.0 / 800)
@@ -95,11 +101,11 @@ class Game():
 				
 		if not self.game_over and not self.pause:
 			#Entities update
-			self.player.update()
+			self.player.update(self.items, self.sound_factory)
+			self.items.update()
 			
 			#If ball.update() returns 1 it means the player has died
-			#If ball.update() returns 0 it means it has hit the bottom of the screen and the player has less than 0 lives left
-			if self.ball.update(pygame.display.Info().current_w, pygame.display.Info().current_h, self.player, self.blocks, self.entities) == 1:
+			if self.ball.update(self.player, self.blocks, self.entities, self.items, self.sound_factory) == 1:
 					self.player.die()
 					self.ball.die()
 					if self.player.lives < 0:
@@ -108,9 +114,6 @@ class Game():
 						self.pause = True
 						print "pause = ", self.pause
 
-					
-
-	
 	def draw(self):
 		#Graphics drawing
 		self.screen.blit(self.background, (0, 0))
@@ -124,7 +127,7 @@ class Game():
 		lives_text = self.fontObj.render(str(self.player.lives) + " lives", 1, (255,255,255))
 		self.screen.blit(lives_text, (10, 25))
 		
-		#Draw game over message
+		#Draw game over and pause message
 		if self.game_over:
 			game_over_text = self.fontObj.render("Game over :( Press space to restart", 1, (255,255,255))
 			self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
