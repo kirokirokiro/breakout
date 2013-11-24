@@ -2,8 +2,14 @@ import pygame, math, time
 
 from entity import Entity
 
+#sound_volume = 0.4
+pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+bip = pygame.mixer.Sound("bip.wav")
+bip.set_volume(0.15)	
+
 class Ball(Entity):
 	def __init__(self, WIDTH, HEIGHT):
+	#SOUND
 		Entity.__init__(self)
 		self.size_width = self.size_height = 18 * (WIDTH * 1.0 / 800)
 		#self.size_height = 18 * (HEIGHT * 1.0 / 640)
@@ -15,12 +21,15 @@ class Ball(Entity):
 		self.y = HEIGHT - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
-		self.speed = ((WIDTH * HEIGHT) / 512000) * 7.0
-		print (WIDTH * HEIGHT)
-		#direction is an angle. In this code 90 is to the right, 270 is to the left, 180 is up and 360 is down
+		self.speed = ((WIDTH * HEIGHT) / 512000) * 5.0
+		
+		
+		#direction is an angle. 90 is to the right, 270 is to the left, 180 is up and 360 is down
 		self.direction = 180
 		self.time_last_collide_up_down = 0
 		self.time_last_collide_left_right = 0
+		self.last_bip = 0
+		self.mute = False
 		
 	def update(self, WIDTH, HEIGHT, player, blocks, entities):
 		#first it converts the direction angle to radian
@@ -36,7 +45,6 @@ class Ball(Entity):
 			#and look for one that will contain nextX and nextY AND all the corners of the ball
 			#ie we look for a block that will collide with the ball (it will "contain" at least one corner of the ball)
 			if block.rect.collidepoint(self.nextX, self.nextY) or block.rect.collidepoint(self.nextX + self.rect.width, self.nextY)  or block.rect.collidepoint(self.nextX + self.rect.width, self.nextY + self.rect.height)  or block.rect.collidepoint(self.nextX, self.nextY + self.rect.height):
-				print self.rect.top >= block.rect.bottom
 				#once we found a colliding block, we try to find out if it will collide from which side it will collide
 				#if RIGHT NOW the ball is over it or under it, then it means it will collide from these sides
 				#because it will collide in 1/60th of a second it's precise 
@@ -52,7 +60,6 @@ class Ball(Entity):
 				blocks.remove(block)
 				entities.remove(block)
 				player.score += 100
-				print "Score =", player.score
 
 		#now we calculate the X and Y coordinates again after the collision with the blocks
 		#if it didn't collide then it does the exact same calculation
@@ -77,12 +84,9 @@ class Ball(Entity):
 			
 		#when the ball hit the bottom of the screen the player loses a life
 		if self.rect.bottom >= HEIGHT:
-			player.die(WIDTH, HEIGHT)
-			self.die(WIDTH, HEIGHT)
-			
-			#if Ball returns 0, it means the game is over! (in breakout.py)
-			if player.lives < 0:
-				return 0
+			#player.die(WIDTH, HEIGHT)
+			#self.die(WIDTH, HEIGHT)
+				return 1
 		
 		#if it collides with the player, bounce it too...
 		if pygame.sprite.collide_rect(self, player):
@@ -95,9 +99,8 @@ class Ball(Entity):
 
 	
 	def die(self, WIDTH, HEIGHT):
-		self.rect.x = self.nextX = self.x = WIDTH/2
+		self.rect.x = self.nextX = self.x = WIDTH/2 - self.rect.width/2
 		self.rect.y = self.nextY = self.y = HEIGHT - 100
-		self.speed = 5
 		self.direction = 180
 		
 	def collide_up_down(self):
@@ -118,3 +121,15 @@ class Ball(Entity):
 		
 		percentage_on_racket = ((self.rect.x + self.rect.width/2 - player.rect.x) * 1.0 / player.rect.width) * 100
 		self.direction = (-1.2 * percentage_on_racket) + 240
+		if time.time() - self.last_bip > 1:
+			self.last_bip = time.time()
+			bip.play()
+			
+	def change_volume(self):
+		if self.mute:
+			bip.set_volume(0.15)
+			self.mute = False
+		else:
+			bip.set_volume(0)
+			self.mute = True
+			

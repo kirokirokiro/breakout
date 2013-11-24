@@ -6,13 +6,11 @@ from player import Player
 from ball import Ball
 from block import Block
 
-#Screen settings
-#WIDTH = 800
-#HEIGHT = 640
-#DISPLAY = (WIDTH, HEIGHT)
 '''base width is 800
 base height is 640
 '''
+
+
 
 DEPTH = 32
 FLAGS = 0
@@ -23,10 +21,10 @@ class Game():
 	player = None
 		
 	def __init__(self, WIDTH, HEIGHT):
+		#Screen settings
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.DISPLAY = (self.WIDTH, self.HEIGHT)	
-		#Screen settings
 		self.screen = pygame.display.set_mode(self.DISPLAY, FLAGS, DEPTH)
 		pygame.display.set_caption("BREAKOUT ULTIMATE")
 		
@@ -35,7 +33,7 @@ class Game():
 		self.background.convert()
 		self.background.fill(pygame.Color("#000000"))	
 		
-		#FONT
+		#Font
 		pygame.font.init()
 		font_path = "./font.ttf"
 		font_size = 16
@@ -49,7 +47,7 @@ class Game():
 		self.entities.add(self.player)
 		self.entities.add(self.ball)
 		
-		#Calculating the space between each block, what could possibly go wrong?
+		#Calculating the space between each block
 		horizontal_spacing = 50 * (self.WIDTH * 1.0 / 800)
 		vertical_spacing = 40 * (self.HEIGHT * 1.0 / 640)
 		for column in range (0, 14):
@@ -60,6 +58,8 @@ class Game():
 				
 		#Game states
 		self.game_over = False
+		self.menu = True
+		self.pause = True
 		
 		
 	def update_stuff(self):		
@@ -72,13 +72,12 @@ class Game():
 			#Player input
 			if (e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
 				self.player.input(e.type, e.key)
-				
+			
 			if e.type == pygame.KEYDOWN and e.key == pygame.K_v:
 				if self.WIDTH == 1440:
 					self.WIDTH = 800
 					self.HEIGHT = 640
 					self.DISPLAY = (self.WIDTH, self.HEIGHT)	
-					#Screen settings
 					self.screen = pygame.display.set_mode(self.DISPLAY, FLAGS, DEPTH)
 					self.__init__(self.WIDTH, self.HEIGHT)
 				elif self.WIDTH == 800:
@@ -88,17 +87,33 @@ class Game():
 					self.screen = pygame.display.set_mode(self.DISPLAY, FLAGS, DEPTH)
 					self.__init__(self.WIDTH, self.HEIGHT)
 
-			if self.game_over and e.type == pygame.KEYDOWN:
-				self.__init__(self.WIDTH, self.HEIGHT)
+			if e.type == pygame.KEYDOWN and e.key == pygame.K_n:
+				self.ball.change_volume()
 				
-		if self.game_over is False:
-
+			#If game over, the player can press a key to restart
+			if self.game_over and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
+				self.__init__(self.WIDTH, self.HEIGHT)
+			
+			#If game is paused, player can press a key to unpause
+			if self.pause and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
+				self.pause = False
+				
+		if not self.game_over and not self.pause:
 			#Entities update
 			self.player.update()
 			
+			#If ball.update() returns 1 it means the player has died
 			#If ball.update() returns 0 it means it has hit the bottom of the screen and the player has less than 0 lives left
-			if self.ball.update(self.WIDTH, self.HEIGHT, self.player, self.blocks, self.entities) == 0:
-				self.game_over = True
+			if self.ball.update(self.WIDTH, self.HEIGHT, self.player, self.blocks, self.entities) == 1:
+					self.player.die(self.WIDTH, self.HEIGHT)
+					self.ball.die(self.WIDTH,self.HEIGHT)
+					if self.player.lives < 0:
+						self.game_over = True
+					else:
+						self.pause = True
+						print "pause = ", self.pause
+
+					
 
 	
 	def draw(self):
@@ -116,7 +131,11 @@ class Game():
 		
 		#Draw game over message
 		if self.game_over:
-			game_over_text = self.fontObj.render("Game over :( Press any key to restart", 1, (255,255,255))
+			game_over_text = self.fontObj.render("Game over :( Press space to restart", 1, (255,255,255))
+			self.screen.blit(game_over_text, (self.WIDTH/2 - game_over_text.get_rect().width/2, self.HEIGHT/2))
+		
+		if self.pause:
+			game_over_text = self.fontObj.render("Press space to start", 1, (255,255,255))
 			self.screen.blit(game_over_text, (self.WIDTH/2 - game_over_text.get_rect().width/2, self.HEIGHT/2))
 
 		pygame.display.flip()	
@@ -124,14 +143,6 @@ class Game():
 def main():
 	#Initiating Pygame
 	pygame.init()
-	'''
-	WIDTH = 1440
-	HEIGHT = 900
-	DISPLAY = (WIDTH, HEIGHT)	
-	#Screen settings
-	screen = pygame.display.set_mode(DISPLAY, FLAGS, DEPTH)
-	pygame.display.set_caption("BREAKOUT ULTIMATE")
-'''
 		
 	#Starting the game's main timer
 	timer = pygame.time.Clock()
