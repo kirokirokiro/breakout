@@ -8,24 +8,19 @@ bip = pygame.mixer.Sound("bip.wav")
 bip.set_volume(0.15)	
 
 class Ball(Entity):
-	def __init__(self, WIDTH, HEIGHT):
+	def __init__(self):
 	#SOUND
 		Entity.__init__(self)
-		self.size_width = self.size_height = 18 * (pygame.display.Info().current_w *  1.0 / 800)
-		print ((pygame.display.Info().current_w*pygame.display.Info().current_h) * 1.0 / (800 * 640))
-		self.image = pygame.Surface((self.size_width, self.size_height ))
+		ball_width = 18 * (pygame.display.Info().current_w *  1.0 / 800)
+		ball_height = 18 * (pygame.display.Info().current_h *  1.0 / 640)
+		self.image = pygame.Surface((ball_width, ball_height))
 		self.image.convert()
 		self.image.fill(pygame.Color("#FFFFFF"))
 		self.rect = self.image.get_rect()
-		self.x = WIDTH/2 - self.rect.width/2
-		self.y = HEIGHT - 80
+		self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		self.y = pygame.display.Info().current_h - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
-		total_pixels = 1.0 * pygame.display.Info().current_w * pygame.display.Info().current_h
-		self.speed =  total_pixels / (800 * 640) * 6
-		print self.speed
-		self.speed = (pygame.display.Info().current_w * 1.0 / 800) * 6
-		print self.speed
 		
 		self.h_speed = (pygame.display.Info().current_w * 1.0 / 800) * 6
 		self.v_speed = (pygame.display.Info().current_h * 1.0 / 640) * 6

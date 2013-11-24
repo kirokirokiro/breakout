@@ -20,9 +20,9 @@ class Game():
 	blocks = None
 	player = None
 		
-	def __init__(self, WIDTH, HEIGHT):
+	def __init__(self, window_width, window_height):
 		#Screen settings
-		self.screen = pygame.display.set_mode((WIDTH, HEIGHT), FLAGS, DEPTH)
+		self.screen = pygame.display.set_mode((window_width, window_height), FLAGS, DEPTH)
 		pygame.display.set_caption("BREAKOUT ULTIMATE")
 		
 		#Background
@@ -39,17 +39,17 @@ class Game():
 		#Entities list (player, balls, blocks)
 		self.entities = pygame.sprite.Group()
 		self.blocks = pygame.sprite.Group()
-		self.player = Player(WIDTH, HEIGHT)
-		self.ball = Ball(WIDTH , HEIGHT)
+		self.player = Player()
+		self.ball = Ball()
 		self.entities.add(self.player)
 		self.entities.add(self.ball)
 		
 		#Calculating the space between each block
-		horizontal_spacing = 50 * (WIDTH * 1.0 / 800)
-		vertical_spacing = 40 * (HEIGHT * 1.0 / 640)
+		horizontal_spacing = 50 * (pygame.display.Info().current_w * 1.0 / 800)
+		vertical_spacing = 40 * (pygame.display.Info().current_h * 1.0 / 640)
 		for column in range (0, 14):
 			for row in range (0, 5):
-				new_block = Block(column * horizontal_spacing + 60, row * vertical_spacing + 50, WIDTH, HEIGHT)
+				new_block = Block(column * horizontal_spacing + 60, row * vertical_spacing + 50, pygame.display.Info().current_w, pygame.display.Info().current_h)
 				self.entities.add(new_block)
 				self.blocks.add(new_block)
 				
@@ -66,26 +66,32 @@ class Game():
 			if e.type == pygame.QUIT:
 				raise SystemExit, "QUIT"
 			
-			#Player input
+			#All the input is sent to the Player object
 			if (e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
 				self.player.input(e.type, e.key)
 			
+			#Pressing V switch between 2 resolution. We could add a menu to choose the resolution later
 			if e.type == pygame.KEYDOWN and e.key == pygame.K_v:
 				if pygame.display.Info().current_w == 1200:	
 					self.__init__(800, 640)
+					
 				elif pygame.display.Info().current_w == 800:
 					self.__init__(1200, 960)
 
+			#pressing B mute the sound
 			if e.type == pygame.KEYDOWN and e.key == pygame.K_n:
 				self.ball.change_volume()
 				
-			#If game over, the player can press a key to restart
+			#If player has no life left, he can press SPACE to restart
 			if self.game_over and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
 				self.__init__(pygame.display.Info().current_w, pygame.display.Info().current_h)
 			
-			#If game is paused, player can press a key to unpause
+			#If game is paused, player can press SPACE to unpause
 			if self.pause and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
 				self.pause = False
+				
+			elif not self.pause and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
+				self.pause = True
 				
 		if not self.game_over and not self.pause:
 			#Entities update
