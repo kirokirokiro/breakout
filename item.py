@@ -8,7 +8,12 @@ class Item(Entity):
 		item_height = 18 * (pygame.display.Info().current_h *  1.0 / 640)
 		self.image = pygame.Surface((item_width, item_height))
 		self.image.convert()
-		self.image.fill(pygame.Color("#FF00FF"))
+		self.type = random.randint(1,2)
+		if self.type == 2:
+			self.image.fill(pygame.Color("#FF0000"))
+		elif self.type == 1:
+			self.image.fill(pygame.Color("#0000FF"))
+
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y

@@ -28,14 +28,24 @@ class Player(Entity):
 		if self.right and self.rect.right < pygame.display.Info().current_w:
 			self.rect.x += self.speed
 			
-		if pygame.sprite.spritecollide(self, items, True):
-			player_width =  156 * (pygame.display.Info().current_w * 1.0 / 800)
-			player_height = 15 * (pygame.display.Info().current_h * 1.0 / 640) 
-			if self.rect.width != player_width:
-				self.rect.x -= ((player_width - self.rect.width) / 2)
-				self.set_size(player_width, player_height, self.rect.x, self.rect.y)
-				sound_factory.play_player_size_increase()
-				
+		items_collisions = pygame.sprite.spritecollide(self, items, True)
+		for i in items_collisions:
+			if i.type == 1:
+				self.score += 50
+				player_width =  156 * (pygame.display.Info().current_w * 1.0 / 800)
+				player_height = 15 * (pygame.display.Info().current_h * 1.0 / 640) 
+				if self.rect.width != player_width:
+					self.rect.x -= ((player_width - self.rect.width) / 2)
+					self.set_size(player_width, player_height, self.rect.x, self.rect.y)
+					sound_factory.play_player_size_increase()
+			elif i.type == 2:
+				self.score -= 50
+				player_width =  112 * (pygame.display.Info().current_w * 1.0 / 800)
+				player_height = 15 * (pygame.display.Info().current_h * 1.0 / 640) 
+				if self.rect.width != player_width:
+					self.rect.x -= ((player_width - self.rect.width) / 2)
+					self.set_size(player_width, player_height, self.rect.x, self.rect.y)
+					sound_factory.play_player_size_decrease()
 			
 	def input(self, type, key):
 		if type == pygame.KEYDOWN and key == pygame.K_LEFT:

@@ -13,7 +13,8 @@ class Ball(Entity):
 		self.image.convert()
 		self.image.fill(pygame.Color("#FFFFFF"))
 		self.rect = self.image.get_rect()
-		self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		#self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		self.x = 0
 		self.y = pygame.display.Info().current_h - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
@@ -26,10 +27,9 @@ class Ball(Entity):
 		self.direction = 180
 		self.time_last_collide_up_down = 0
 		self.time_last_collide_left_right = 0
-		self.last_bip = 0
-		self.mute = False
 		
 	def update(self, player, blocks, entities, items, sound_factory):
+
 		#first it converts the direction angle to radian
 		rad = self.direction * math.pi/180
 		
@@ -83,8 +83,10 @@ class Ball(Entity):
 		#if the ball is outside of the screen, bounce it
 		if self.rect.right >= pygame.display.Info().current_w or self.rect.left <= 0:
 			self.collide_left_right()
+			
 		if self.rect.top <= 0 or self.rect.bottom >= pygame.display.Info().current_h:
 			self.collide_up_down()
+
 			
 		#when the ball hit the bottom of the screen the player loses a life
 		if self.rect.bottom >= pygame.display.Info().current_h:
@@ -99,7 +101,7 @@ class Ball(Entity):
 		if self.direction > 360:
 			self.direction -= 360
 		
-
+	
 	
 	def die(self):
 		self.rect.x = self.nextX = self.x = pygame.display.Info().current_w/2 - self.rect.width/2
@@ -117,6 +119,16 @@ class Ball(Entity):
 		if time.time() - self.time_last_collide_left_right > 0.005:
 			self.time_last_collide_left_right = time.time()
 			self.direction = 360 - self.direction
+	
+		if self.rect.left < 0:
+			self.x = 5
+			self.rect.left = 5
+			self.nextX = 5
+
+		if self.rect.left > pygame.display.Info().current_w:
+			self.rect.right = pygame.display.Info().current_w - 5
+			self.nextX = pygame.display.Info().current_w - 5
+			self.x = pygame.display.Info().current_w - 5 + self.rect.width
 		
 	def collide_player(self, player):
 	#calculate the angle of the ball, the closer it is to the borders of the racket the higher the angle is
@@ -126,12 +138,5 @@ class Ball(Entity):
 		self.direction = (-1.2 * percentage_on_racket) + 240
 
 
-			
-	def change_volume(self):
-		if self.mute:
-			bip.set_volume(0.15)
-			self.mute = False
-		else:
-			bip.set_volume(0)
-			self.mute = True
+
 			

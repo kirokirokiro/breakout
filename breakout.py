@@ -55,7 +55,7 @@ class Game():
 		vertical_spacing = 40 * (pygame.display.Info().current_h * 1.0 / 640)
 		for column in range (0, 14):
 			for row in range (0, 5):
-				new_block = Block(column * horizontal_spacing + 60, row * vertical_spacing + 50, pygame.display.Info().current_w, pygame.display.Info().current_h)
+				new_block = Block(column * horizontal_spacing + (60 * (pygame.display.Info().current_w * 1.0 / 800)), row * vertical_spacing + 50, pygame.display.Info().current_w, pygame.display.Info().current_h)
 				self.entities.add(new_block)
 				self.blocks.add(new_block)
 				
@@ -86,7 +86,7 @@ class Game():
 
 			#pressing B mute the sound
 			if e.type == pygame.KEYDOWN and e.key == pygame.K_n:
-				self.ball.change_volume()
+				self.sound_factory.change_volume()
 				
 			#If player has no life left, he can press SPACE to restart
 			if self.game_over and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
