@@ -50,6 +50,22 @@ class Game():
 		
 		self.sound_factory = Sound()
 		
+		#Menu settings
+		self.menu_option_x_position = []
+		self.menu_option_y_position = []
+		self.rect_option_menu = []
+		self.menu_option_text = ["Play", "Options", "Quit"]
+		self.menu_option = [self.fontObj.render(self.menu_option_text[0], 1, (255,255,255)), self.fontObj.render(self.menu_option_text[1], 1, (255,255,255)), self.fontObj.render(self.menu_option_text[2], 1, (255,255,255))]
+		for i in range(len(self.menu_option_text)):
+			self.menu_option_x_position.append(pygame.display.Info().current_w/2  - self.menu_option[i].get_rect().width/2)
+			self.menu_option_y_position.append(pygame.display.Info().current_h/2 - 50 + 30 * i)
+			
+			menu_option_rect = pygame.Rect(self.menu_option_x_position[i], self.menu_option_y_position[i], self.menu_option[i].get_rect().width, self.menu_option[i].get_rect().height)
+			self.rect_option_menu.append(menu_option_rect)
+
+		
+		self.menu_mouse_pos = [False, False, False]
+		
 		#Calculating the space between each block
 		horizontal_spacing = 50 * (pygame.display.Info().current_w * 1.0 / 800)
 		vertical_spacing = 40 * (pygame.display.Info().current_h * 1.0 / 640)
@@ -64,18 +80,38 @@ class Game():
 		self.menu = True
 		self.pause = True
 		
-		
-	def update_stuff(self):	
+	
+	def update_stuff(self):
+		for i in range (len(self.menu_option_text)):
+			if self.rect_option_menu[i].collidepoint(pygame.mouse.get_pos()):
+				self.menu_option[i] = self.fontObj.render(self.menu_option_text[i], 1, (255,000,000))
+				self.menu_mouse_pos[i] = True
+			else:
+				self.menu_option[i] = self.fontObj.render(self.menu_option_text[i], 1, (255,255,255))
+				self.menu_mouse_pos[i] = False
+				
 		#Keyboard and mouse events
 		for e in pygame.event.get():
 			#Clicking the cross to quit
 			if e.type == pygame.QUIT:
 				raise SystemExit, "QUIT"
 			
+			#Clicking on the menu
+			
+			if self.menu:
+				if e.type == pygame.MOUSEBUTTONDOWN:
+					if self.menu_mouse_pos[0] == True:
+						self.menu = False
+					elif self.menu_mouse_pos[2] == True:
+						raise SystemExit, "Quit"	
+					
 			#All the input is sent to the Player object
-			if (e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
+			if (e.type == pygame.KEYDOWN or e.type == pygame.KEYUP) and not self.menu:
 				self.player.input(e.type, e.key)
 			
+			if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+				raise SystemExit, "ESCAPE"
+				
 			#Pressing V switch between 2 resolution. We could add a menu to choose the resolution later
 			if e.type == pygame.KEYDOWN and e.key == pygame.K_v:
 				if pygame.display.Info().current_w == 1200:	
@@ -99,7 +135,8 @@ class Game():
 			elif not self.pause and e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
 				self.pause = True
 				
-		if not self.game_over and not self.pause:
+				
+		if not self.game_over and not self.pause and not self.menu:
 			#Entities update
 			self.player.update(self.items, self.sound_factory)
 			self.items.update()
@@ -117,27 +154,33 @@ class Game():
 	def draw(self):
 		#Graphics drawing
 		self.screen.blit(self.background, (0, 0))
-		self.entities.draw(self.screen)
 		
-		#Draw the score
-		score_text = self.fontObj.render(str(self.player.score) + " points", 1, (255,255,255))
-		self.screen.blit(score_text, (10, 5))
-		
-		#Draw lives
-		lives_text = self.fontObj.render(str(self.player.lives) + " lives", 1, (255,255,255))
-		self.screen.blit(lives_text, (10, 25))
-		
-		#Draw game over and pause message
-		if self.game_over:
-			game_over_text = self.fontObj.render("Game over :( Press space to restart", 1, (255,255,255))
-			self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
-		
-		if self.pause:
-			game_over_text = self.fontObj.render("Press space to start", 1, (255,255,255))
-			self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
-
+		if not self.menu:
+			self.entities.draw(self.screen)
+			
+			#Draw the score
+			score_text = self.fontObj.render(str(self.player.score) + " points", 1, (255,255,255))
+			self.screen.blit(score_text, (10, 5))
+			
+			#Draw lives
+			lives_text = self.fontObj.render(str(self.player.lives) + " lives", 1, (255,255,255))
+			self.screen.blit(lives_text, (10, 25))
+			
+			#Draw game over and pause message
+			if self.game_over:
+				game_over_text = self.fontObj.render("Game over :( Press space to restart", 1, (255,255,255))
+				self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
+			
+			if self.pause:
+				game_over_text = self.fontObj.render("Press space to start", 1, (255,255,255))
+				self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
+				
+		elif self.menu:
+			for i in range(len(self.menu_option_text)):
+				self.screen.blit(self.menu_option[i], (self.menu_option_x_position[i], self.menu_option_y_position[i]))
+			
 		pygame.display.flip()	
-
+		
 def main():
 	#Initiating Pygame
 	pygame.init()

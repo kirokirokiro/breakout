@@ -72,8 +72,7 @@ class Player(Entity):
 		if type == pygame.KEYUP and key == pygame.K_RIGHT:
 			self.right = False
 			
-		if type == pygame.KEYDOWN and key == pygame.K_ESCAPE:
-			raise SystemExit, "ESCAPE"
+
 			
 	def die(self):
 		self.rect.x = pygame.display.Info().current_w/2 - self.rect.width/2
