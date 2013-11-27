@@ -1,5 +1,6 @@
 import pygame
 import math
+import time
 
 from entity import Entity
 from player import Player
@@ -7,6 +8,7 @@ from ball import Ball
 from block import Block
 from item import Item
 from sound import Sound
+from menu import Menu
 
 '''base width is 800
 base height is 640
@@ -24,6 +26,12 @@ class Game():
 	sound_factory = None
 	
 	def __init__(self, window_width, window_height):
+		self.frame_update = 0
+		self.second_count_update = time.time()
+		
+		self.frame_draw = 0
+		self.second_count_draw = time.time()
+		
 		#Screen settings
 		self.screen = pygame.display.set_mode((window_width, window_height), FLAGS, DEPTH)
 		pygame.display.set_caption("BREAKOUT ULTIMATE")
@@ -35,7 +43,6 @@ class Game():
 		
 		#Font
 		pygame.font.init()
-		font_path = "./font.ttf"
 		font_size = 16
 		self.fontObj = pygame.font.SysFont("courier", font_size)
 		
@@ -50,21 +57,7 @@ class Game():
 		
 		self.sound_factory = Sound()
 		
-		#Menu settings
-		self.menu_option_x_position = []
-		self.menu_option_y_position = []
-		self.rect_option_menu = []
-		self.menu_option_text = ["Play", "Options", "Quit"]
-		self.menu_option = [self.fontObj.render(self.menu_option_text[0], 1, (255,255,255)), self.fontObj.render(self.menu_option_text[1], 1, (255,255,255)), self.fontObj.render(self.menu_option_text[2], 1, (255,255,255))]
-		for i in range(len(self.menu_option_text)):
-			self.menu_option_x_position.append(pygame.display.Info().current_w/2  - self.menu_option[i].get_rect().width/2)
-			self.menu_option_y_position.append(pygame.display.Info().current_h/2 - 50 + 30 * i)
-			
-			menu_option_rect = pygame.Rect(self.menu_option_x_position[i], self.menu_option_y_position[i], self.menu_option[i].get_rect().width, self.menu_option[i].get_rect().height)
-			self.rect_option_menu.append(menu_option_rect)
-
-		
-		self.menu_mouse_pos = [False, False, False]
+		self.menu_obj = Menu()
 		
 		#Calculating the space between each block
 		horizontal_spacing = 50 * (pygame.display.Info().current_w * 1.0 / 800)
@@ -80,15 +73,21 @@ class Game():
 		self.menu = True
 		self.pause = True
 		
-	
+		
 	def update_stuff(self):
-		for i in range (len(self.menu_option_text)):
-			if self.rect_option_menu[i].collidepoint(pygame.mouse.get_pos()):
-				self.menu_option[i] = self.fontObj.render(self.menu_option_text[i], 1, (255,000,000))
-				self.menu_mouse_pos[i] = True
-			else:
-				self.menu_option[i] = self.fontObj.render(self.menu_option_text[i], 1, (255,255,255))
-				self.menu_mouse_pos[i] = False
+		self.frame_update += 1
+		if time.time() - self.second_count_update >= 1:
+			self.second_count_update = time.time()
+			print self.frame_update, "updates per second"
+			self.frame_update = 0
+		
+		if self.menu:
+			menu_choice = self.menu_obj.update(self.menu, self)
+			if menu_choice == "Play":
+				self.menu = False
+			
+			#if menu_choice == "Options":
+			#	self.option_menu = True
 				
 		#Keyboard and mouse events
 		for e in pygame.event.get():
@@ -96,15 +95,6 @@ class Game():
 			if e.type == pygame.QUIT:
 				raise SystemExit, "QUIT"
 			
-			#Clicking on the menu
-			
-			if self.menu:
-				if e.type == pygame.MOUSEBUTTONDOWN:
-					if self.menu_mouse_pos[0] == True:
-						self.menu = False
-					elif self.menu_mouse_pos[2] == True:
-						raise SystemExit, "Quit"	
-					
 			#All the input is sent to the Player object
 			if (e.type == pygame.KEYDOWN or e.type == pygame.KEYUP) and not self.menu:
 				self.player.input(e.type, e.key)
@@ -152,6 +142,12 @@ class Game():
 						print "pause = ", self.pause
 
 	def draw(self):
+		self.frame_draw += 1
+		if time.time() - self.second_count_draw >= 1:
+			self.second_count_draw = time.time()
+			print self.frame_draw, "draws per second"
+			self.frame_draw = 0
+			
 		#Graphics drawing
 		self.screen.blit(self.background, (0, 0))
 		
@@ -176,9 +172,8 @@ class Game():
 				self.screen.blit(game_over_text, (pygame.display.Info().current_w/2 - game_over_text.get_rect().width/2, pygame.display.Info().current_h/2))
 				
 		elif self.menu:
-			for i in range(len(self.menu_option_text)):
-				self.screen.blit(self.menu_option[i], (self.menu_option_x_position[i], self.menu_option_y_position[i]))
-			
+			self.menu_obj.draw(self.screen)
+
 		pygame.display.flip()	
 		
 def main():
@@ -193,7 +188,7 @@ def main():
 	while not done:
 		game.update_stuff()
 		game.draw()
-		timer.tick(60)
+		timer.tick(75)
 		
 	pygame.quit()
 			

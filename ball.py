@@ -13,17 +13,20 @@ class Ball(Entity):
 		self.image.convert()
 		self.image.fill(pygame.Color("#FFFFFF"))
 		self.rect = self.image.get_rect()
-		self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		#self.x = pygame.display.Info().current_w/2 - self.rect.width/2
+		self.x = pygame.display.Info().current_w
 		self.y = pygame.display.Info().current_h - 80
 		self.rect.x = self.nextX = self.x
 		self.rect.y = self.nextY = self.y
+		
+		self.unstuck = time.time()
 		
 		#The horizontal and vertical speed are scaled to the windows' size
 		self.h_speed = (pygame.display.Info().current_w * 1.0 / 800) * 6
 		self.v_speed = (pygame.display.Info().current_h * 1.0 / 640) * 6
 		
 		#direction is an angle. 90 is to the right, 270 is to the left, 180 is up and 360 is down
-		self.direction = 180
+		self.direction = 120
 		self.time_last_collide_up_down = 0
 		self.time_last_collide_left_right = 0
 		
@@ -110,16 +113,17 @@ class Ball(Entity):
 	def collide_up_down(self):
 		#we check if there's at least 0.005 seconds between each collisions or else it can collides the ball twice
 		#when it hits 2 blocks at the same time and the direction change is cancelled (it goes from 180 to 360 to 180 again)
-		if time.time() - self.time_last_collide_up_down > 0.005:
+		if time.time() - self.time_last_collide_up_down > 0.002:
 			self.time_last_collide_up_down = time.time()
 			self.direction = 360 - (self.direction - 180)
 		
 	def collide_left_right(self):
-		if time.time() - self.time_last_collide_left_right > 0.005:
+		if time.time() - self.time_last_collide_left_right > 0.002:
 			self.time_last_collide_left_right = time.time()
 			self.direction = 360 - self.direction
 	
 		if self.rect.left < 0:
+			self.unstuck = time.time()
 			self.x = 5
 			self.rect.left = 5
 			self.nextX = 5
@@ -127,7 +131,7 @@ class Ball(Entity):
 		if self.rect.left > pygame.display.Info().current_w:
 			self.rect.right = pygame.display.Info().current_w - 5
 			self.nextX = pygame.display.Info().current_w - 5
-			self.x = pygame.display.Info().current_w - 5 + self.rect.width
+			self.x = pygame.display.Info().current_w - 5 - self.rect.width
 		
 	def collide_player(self, player):
 	#calculate the angle of the ball, the closer it is to the borders of the racket the higher the angle is
